@@ -50,13 +50,13 @@ const authenticateToken = async (request, response, next) => {
     jwtToken = authorHeader.split(" ")[1];
   }
   if (jwtToken) {
-    jwt.verify(jwtToken, "My_Secert_Token", (error, playLoad) => {
+    jwt.verify(jwtToken, "My_Secert_Token", (error, playload) => {
       if (error) {
         response.status(401);
         response.send("Invalid JWT Token");
       } else {
-        request.username = playLoad.username;
-        request.userId = playLoad.userId;
+        request.username = playload.username;
+        request.userId = playload.userId;
         next();
       }
     });
@@ -71,9 +71,9 @@ const authenticateToken = async (request, response, next) => {
 const tweetAccessVerification = async (request, response, next) => {
   const { userId } = request;
   const { tweetId } = request.params;
-  const getTweetQuery = `SELECT * FROM tweet inner join follower 
-  on tweet.user_id = follower.following_user_id
-        where tweet.tweet_id = '${tweetId}' and follower_user_id = '${userId}';`;
+  const getTweetQuery = `SELECT * FROM tweet INNER JOIN follower 
+  ON tweet.user_id = follower.following_user_id
+        WHERE tweet.tweet_id = '${tweetId}' AND follower_user_id = '${userId}';`;
   const tweet = await db.get(getTweetQuery);
   if (tweet === undefined) {
     response.status(401);
@@ -149,10 +149,11 @@ app.get("/user/tweets/feed/", authenticateToken, async (request, response) => {
 
 app.get("/user/following/", authenticateToken, async (request, response) => {
   const { username, userId } = request;
-  const getFollowingUsersQuery = `SELECT name FROM follower 
-    INNER JOIN user ON user.user_id = follower.following_user_id
-    WHERE follower_user_id = ${userId};`;
-
+  const getFollowingUsersQuery = `
+SELECT
+name
+FROM follower INNER JOIN user on user.user_id = follower.follower_user_id
+WHERE follower.following_user_id = "${userId}";`;
   const followingPeople = await db.all(getFollowingUsersQuery);
   response.send(followingPeople);
 });
@@ -163,7 +164,7 @@ app.get("/user/followers/", authenticateToken, async (request, response) => {
   const { username, userId } = request;
   const getFollowersQuery = `SELECT DISTINCT name FROM 
         follower INNER JOIN user ON user.user_id = follower.follower_user_id
-        WHERE following_user_id = '${userId}';`;
+        WHERE following_user_id = ${userId};`;
   const followers = await db.all(getFollowersQuery);
   response.send(followers);
 });
@@ -251,8 +252,8 @@ app.delete(
   async (request, response) => {
     const { tweetId } = request.params;
     const { userId } = request;
-    const getTheTweetQuery = `select * from tweet where user_id = '${userId}'
-        and tweet_id = ${tweetId};`;
+    const getTheTweetQuery = `SELCT  * FROM tweet WHERE user_id = ${userId}
+        AND tweet_id = ${tweetId};`;
     const tweet = await db.get(getTheTweetQuery);
     if (tweet === undefined) {
       response.status(401);
