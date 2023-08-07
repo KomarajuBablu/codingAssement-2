@@ -50,13 +50,15 @@ const authenticateToken = async (request, response, next) => {
     jwtToken = authorHeader.split(" ")[1];
   }
   if (jwtToken) {
-    jwt.verify(jwtToken, "My_Secert_Token", (error, playload) => {
+    jwt.verify(jwtToken, "My_Secert_Token", (error, playLoad) => {
       if (error) {
         response.status(401);
         response.send("Invalid JWT Token");
       } else {
-        request.username = playload.username;
-        request.userId = playload.userId;
+        request.username = playLoad.username;
+        request.userId = playLoad.userId;
+        console.log(request.userId);
+        console.log(request.username);
         next();
       }
     });
@@ -118,7 +120,8 @@ app.post("/login/", async (request, response) => {
   } else {
     const isPassword = await bcrypt.compare(password, dbUser.password);
     if (isPassword) {
-      const playLoad = { username: username };
+      const playLoad = { username, userId: dbUser.user_id };
+      console.log(playLoad.userId);
       const jwtToken = jwt.sign(playLoad, "My_Secert_Token");
       response.send({ jwtToken });
     } else {
@@ -149,6 +152,7 @@ app.get("/user/tweets/feed/", authenticateToken, async (request, response) => {
 
 app.get("/user/following/", authenticateToken, async (request, response) => {
   const { username, userId } = request;
+  console.log(username, userId);
   const getFollowingUsersQuery = `
 SELECT
 name
